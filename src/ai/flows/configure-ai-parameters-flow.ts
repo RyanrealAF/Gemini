@@ -8,10 +8,9 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z, Part} from 'genkit';
+import {z} from 'genkit';
 
-// Defining the schemas based on the AIProxyRequest structure and user requirements.
-
+// Defining the schemas for internal validation and type inference.
 const AIMessagePartSchema = z.object({
   text: z.string().describe('The text content of the message part.'),
 });
@@ -58,29 +57,21 @@ const configureAIParametersFlow = ai.defineFlow(
     outputSchema: ConfigureAIParametersOutputSchema,
   },
   async (input) => {
-    const chatParts: Part[] = [];
+    // Correctly format history as messages
+    const messages = input.contents.map(msg => ({
+      role: msg.role,
+      content: msg.parts.map(p => ({ text: p.text })),
+    }));
 
-    // Add system instruction if provided
-    if (input.systemInstruction && input.systemInstruction.parts.length > 0) {
-      chatParts.push({
-        text: input.systemInstruction.parts.map(p => p.text).join(' '), // Flatten parts into a single text string
-        role: 'system'
-      });
-    }
+    // Extract system instructions if provided
+    const systemInstruction = input.systemInstruction?.parts?.map(p => ({
+      text: p.text,
+    }));
 
-    // Add conversation history
-    input.contents.forEach(msg => {
-      if (msg.parts.length > 0) {
-        chatParts.push({
-          text: msg.parts.map(p => p.text).join(' '),
-          role: msg.role,
-        });
-      }
-    });
-
-    const { output } = await ai.generate({
-      model: 'googleai/gemini-2.5-flash', // Use string identifier instead of ai.model()
-      prompt: chatParts,
+    const response = await ai.generate({
+      model: 'googleai/gemini-2.5-flash',
+      prompt: messages,
+      systemInstruction: systemInstruction && systemInstruction.length > 0 ? systemInstruction : undefined,
       config: {
         temperature: input.generationConfig?.temperature,
         topP: input.generationConfig?.topP,
@@ -90,10 +81,10 @@ const configureAIParametersFlow = ai.defineFlow(
       },
     });
 
-    if (!output || typeof output.text !== 'string') {
+    if (!response.text) {
       throw new Error('Failed to get a valid text response from the AI.');
     }
 
-    return { text: output.text };
+    return { text: response.text };
   }
 );
