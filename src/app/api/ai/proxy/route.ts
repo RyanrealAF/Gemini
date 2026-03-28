@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const genkitPrompt = body.contents.map(msg => ({
+    // Map client messages to Genkit 1.x Message format (using 'content' instead of 'parts')
+    const genkitMessages = body.contents.map(msg => ({
       role: msg.role,
       content: msg.parts.map(p => ({ text: p.text })),
     }));
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
     if (body.stream) {
       const { stream, response } = ai.generateStream({
         model: 'googleai/gemini-2.5-flash',
-        prompt: genkitPrompt,
+        messages: genkitMessages,
         systemInstruction: systemInstruction && systemInstruction.length > 0 ? systemInstruction : undefined,
         config: {
           temperature: body.generationConfig?.temperature,
@@ -85,7 +86,7 @@ export async function POST(req: NextRequest) {
     // Batch Response
     const result = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
-      prompt: genkitPrompt,
+      messages: genkitMessages,
       systemInstruction: systemInstruction && systemInstruction.length > 0 ? systemInstruction : undefined,
       config: {
         temperature: body.generationConfig?.temperature,

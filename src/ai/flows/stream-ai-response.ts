@@ -48,9 +48,9 @@ const streamAIResponseFlow = ai.defineFlow(
     outputSchema: StreamAIResponseOutputSchema,
   },
   async (input) => {
-    const genkitPrompt = input.contents.map(msg => ({
+    const genkitMessages = input.contents.map(msg => ({
       role: msg.role,
-      parts: msg.parts.map(p => ({ text: p.text })),
+      content: msg.parts.map(p => ({ text: p.text })),
     }));
 
     const genkitConfig = {
@@ -68,8 +68,8 @@ const streamAIResponseFlow = ai.defineFlow(
     let fullText = '';
     // In Genkit 1.x, generateStream is not awaited
     const { stream, response } = ai.generateStream({
-      model: 'googleai/gemini-2.5-flash', // Use string identifier instead of ai.model()
-      prompt: genkitPrompt,
+      model: 'googleai/gemini-2.5-flash',
+      messages: genkitMessages,
       config: genkitConfig,
       systemInstruction: genkitSystemInstruction,
     });

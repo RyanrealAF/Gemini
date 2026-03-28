@@ -57,8 +57,8 @@ const configureAIParametersFlow = ai.defineFlow(
     outputSchema: ConfigureAIParametersOutputSchema,
   },
   async (input) => {
-    // Correctly format history as messages
-    const messages = input.contents.map(msg => ({
+    // Correctly format history as messages using 'content'
+    const genkitMessages = input.contents.map(msg => ({
       role: msg.role,
       content: msg.parts.map(p => ({ text: p.text })),
     }));
@@ -70,7 +70,7 @@ const configureAIParametersFlow = ai.defineFlow(
 
     const response = await ai.generate({
       model: 'googleai/gemini-2.5-flash',
-      prompt: messages,
+      messages: genkitMessages,
       systemInstruction: systemInstruction && systemInstruction.length > 0 ? systemInstruction : undefined,
       config: {
         temperature: input.generationConfig?.temperature,
