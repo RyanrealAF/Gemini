@@ -79,7 +79,7 @@ const configureAIParametersFlow = ai.defineFlow(
     });
 
     const { output } = await ai.generate({
-      model: ai.model('googleai/gemini-2.5-flash'), // Explicitly use the model
+      model: 'googleai/gemini-2.5-flash', // Use string identifier instead of ai.model()
       prompt: chatParts,
       config: {
         temperature: input.generationConfig?.temperature,

@@ -66,8 +66,9 @@ const streamAIResponseFlow = ai.defineFlow(
     }));
 
     let fullText = '';
-    const { stream, response } = await ai.generateStream({
-      model: ai.model('googleai/gemini-2.5-flash'), // Explicitly use the model
+    // In Genkit 1.x, generateStream is not awaited
+    const { stream, response } = ai.generateStream({
+      model: 'googleai/gemini-2.5-flash', // Use string identifier instead of ai.model()
       prompt: genkitPrompt,
       config: genkitConfig,
       systemInstruction: genkitSystemInstruction,
