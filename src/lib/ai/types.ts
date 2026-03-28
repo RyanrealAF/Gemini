@@ -8,6 +8,7 @@ export interface AIMessage {
 
 export interface AIProxyRequest {
   contents: AIMessage[];
+  stream?: boolean;
   generationConfig?: {
     temperature?: number;
     topP?: number;
