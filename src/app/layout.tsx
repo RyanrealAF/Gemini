@@ -2,8 +2,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'EdgeAI Chat - Hardened AI Interface',
-  description: 'A modern, secure, and blazing fast AI chat interface.',
+  title: 'BuildWhileBleeding - Edge AI Arsenal',
+  description: 'A hardened, global-scale AI interface with Jules Auth and Edge Caching.',
 };
 
 export default function RootLayout({

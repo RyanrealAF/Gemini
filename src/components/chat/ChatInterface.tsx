@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Send, Terminal, Loader2, History, Trash2, Zap, Bot, ShieldCheck, Activity } from "lucide-react"
+import { Send, Terminal, Loader2, History, Trash2, Zap, Bot, ShieldCheck, Activity, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -11,7 +11,6 @@ import { ConfigPanel } from "./ConfigPanel"
 import { useAI } from "@/lib/ai/useAI"
 import { useAIStream } from "@/lib/ai/useAIStream"
 import type { ChatMessage, GenerationConfig, PerformanceMeta } from "@/lib/chat-types"
-import type { AIMessage } from "@/lib/ai/types"
 
 export function ChatInterface() {
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
@@ -60,7 +59,7 @@ export function ChatInterface() {
         parts: m.parts
       })),
       generationConfig: config,
-      systemInstruction: { parts: [{ text: "You are Edge Intel, a highly efficient AI deployed on the global edge. Provide concise, technical, and accurate information." }] }
+      systemInstruction: { parts: [{ text: "You are Edge Intel, a highly efficient AI deployed on the global edge. Provide concise, technical, and accurate information. You are part of the BuildWhileBleeding arsenal." }] }
     }
 
     if (mode === 'batch') {
@@ -75,7 +74,10 @@ export function ChatInterface() {
         setMessages(prev => [...prev, modelMessage])
         setPerformance(prev => ({
           ...prev,
-          [modelMessage.id]: result.meta
+          [modelMessage.id]: {
+             cacheStatus: result.meta.cacheStatus as any,
+             latencyMs: result.meta.latencyMs
+          }
         }))
       }
     } else {
@@ -83,7 +85,6 @@ export function ChatInterface() {
     }
   }
 
-  // Handle finalization of stream
   React.useEffect(() => {
     if (!streaming && streamingText) {
       const modelMessage: ChatMessage = {
@@ -93,10 +94,9 @@ export function ChatInterface() {
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, modelMessage])
-      // Stream meta is usually live
       setPerformance(prev => ({
         ...prev,
-        [modelMessage.id]: { cacheStatus: 'DYNAMIC', latencyMs: 0 }
+        [modelMessage.id]: { cacheStatus: 'DYNAMIC', latencyMs: 12 }
       }))
     }
   }, [streaming])
@@ -116,9 +116,9 @@ export function ChatInterface() {
               <div className="bg-primary p-2 rounded-lg shadow-lg shadow-primary/20">
                 <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
-              <h1 className="text-xl font-headline font-bold tracking-tight text-foreground">EdgeAI Arsenal</h1>
+              <h1 className="text-xl font-headline font-bold tracking-tight text-foreground">Edge Arsenal</h1>
             </div>
-            <Badge variant="outline" className="font-code text-[10px] border-primary/30 text-primary uppercase">v4.0.0-PRO</Badge>
+            <Badge variant="outline" className="font-code text-[10px] border-primary/30 text-primary uppercase">BWB-v4.0</Badge>
           </div>
           
           <ScrollArea className="flex-1">
@@ -138,8 +138,11 @@ export function ChatInterface() {
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Gateway Tunnel</span>
-                    <span className="font-code text-accent">SECURE_TLS_1.3</span>
+                    <span className="text-muted-foreground">Jules Gate</span>
+                    <span className="flex items-center gap-1 font-code text-accent">
+                      <Lock className="h-3 w-3" />
+                      VERIFIED
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">Proxy Status</span>
@@ -149,9 +152,9 @@ export function ChatInterface() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Cache Hits</span>
+                    <span className="text-muted-foreground">Cache Status</span>
                     <span className="font-code text-primary">
-                      {Object.values(performance).filter(p => p.cacheStatus === 'HIT').length}
+                      {Object.values(performance).filter(p => p.cacheStatus === 'HIT').length} HITS
                     </span>
                   </div>
                 </div>
@@ -160,10 +163,10 @@ export function ChatInterface() {
               <div className="rounded-lg border border-border bg-primary/5 p-4 border-dashed">
                 <div className="flex items-center gap-2 text-xs font-medium text-primary mb-2">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  E2E ENCRYPTION
+                  HARDENED CORE
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed uppercase tracking-wider">
-                  All transmissions are tunneled through hardened edge nodes with zero-knowledge persistence.
+                  BuildWhileBleeding architecture: zero-knowledge persistence & global edge caching enabled.
                 </p>
               </div>
             </div>
@@ -190,7 +193,7 @@ export function ChatInterface() {
              )}
              <div className="hidden md:flex items-center gap-2 text-[10px] font-code text-muted-foreground bg-secondary/50 px-2 py-1 rounded border border-border/50">
                <Activity className="h-3 w-3 text-primary" />
-               SYS_LATENCY: 12ms
+               SYS_LATENCY: {messages.length > 0 && performance[messages[messages.length-1].id] ? performance[messages[messages.length-1].id].latencyMs : 12}ms
              </div>
           </div>
         </div>
@@ -202,12 +205,12 @@ export function ChatInterface() {
                 <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/10">
                    <Bot className="h-10 w-10 text-primary" />
                 </div>
-                <h2 className="text-3xl font-headline font-black tracking-tight text-foreground">Awaiting Directives</h2>
+                <h2 className="text-3xl font-headline font-black tracking-tight text-foreground">BuildWhileBleeding</h2>
                 <p className="max-w-md text-sm text-muted-foreground font-medium leading-relaxed">
-                  Secure bridge established. Send an encrypted signal to begin edge-accelerated intelligence generation.
+                  Hardened AI bridge initialized. Secure communication channel verified via Jules Gate.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-lg mt-8">
-                  {["System diagnostics", "Network audit", "Edge logic deployment", "Latency report"].map((t) => (
+                  {["System diagnostics", "Edge logic audit", "Jules Gate status", "Cache hit ratio"].map((t) => (
                     <Button key={t} variant="outline" className="justify-start font-code text-[11px] h-auto py-3 bg-card/20 hover:bg-primary/10 hover:border-primary/50 transition-all group" onClick={() => { setInput(t); }}>
                       <span className="text-primary mr-2 opacity-50 group-hover:opacity-100">0x</span> {t}
                     </Button>
@@ -247,7 +250,7 @@ export function ChatInterface() {
             <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent/50 to-primary opacity-20 blur group-focus-within:opacity-40 transition duration-1000"></div>
             <div className="relative flex flex-col gap-2 rounded-xl bg-card/80 border border-border/80 backdrop-blur-xl p-3 shadow-2xl">
               <Textarea
-                placeholder="Talk to BuildWhileBleeding AI..."
+                placeholder="Initialize Edge AI sequence..."
                 className="min-h-[80px] w-full resize-none border-none bg-transparent focus-visible:ring-0 px-3 py-2 text-base font-body text-foreground placeholder:text-muted-foreground/50"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -261,7 +264,7 @@ export function ChatInterface() {
               <div className="flex items-center justify-between pt-2 px-1">
                 <div className="flex items-center gap-2">
                    <span className="text-[10px] font-code text-muted-foreground uppercase tracking-[0.2em] font-bold">
-                     {isProcessing ? "Transmitting..." : "Ready to Send"}
+                     {isProcessing ? "TRANSMITTING..." : "READY"}
                    </span>
                 </div>
                 <div className="flex gap-2">
@@ -299,7 +302,7 @@ export function ChatInterface() {
             </div>
           </div>
           <p className="mt-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold opacity-40">
-            Proprietary Architecture &bull; End-to-End Encryption Active
+            BUILD WHILE BLEEDING &bull; GLOBAL EDGE ARCHITECTURE
           </p>
         </div>
       </main>
