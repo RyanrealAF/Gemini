@@ -1,3 +1,16 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "ai-hero",
+      "description": "Abstract AI neural network visual representing edge computing.",
+      "imageUrl": "https://picsum.photos/seed/edgeai1/1200/800",
+      "imageHint": "neural network"
+    },
+    {
+      "id": "security-shield",
+      "description": "A high-tech digital shield representing encryption and security.",
+      "imageUrl": "https://picsum.photos/seed/security1/600/400",
+      "imageHint": "cyber security"
+    }
+  ]
 }
