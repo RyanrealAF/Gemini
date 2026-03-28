@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Send, Terminal, Loader2, History, Trash2, Zap, Bot, ShieldCheck, Activity, Lock } from "lucide-react"
+import { Send, Terminal, Loader2, History, Trash2, Zap, Bot, ShieldCheck, Activity, Lock, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -10,11 +10,13 @@ import { MessageBubble } from "./MessageBubble"
 import { ConfigPanel } from "./ConfigPanel"
 import { useAI } from "@/lib/ai/useAI"
 import { useAIStream } from "@/lib/ai/useAIStream"
+import { queryForensicAI } from "@/lib/api-client"
 import type { ChatMessage, GenerationConfig, PerformanceMeta } from "@/lib/chat-types"
 
 export function ChatInterface() {
   const [messages, setMessages] = React.useState<ChatMessage[]>([])
   const [input, setInput] = React.useState("")
+  const [isForensicMode, setIsForensicMode] = React.useState(false)
   const [config, setConfig] = React.useState<GenerationConfig>({
     temperature: 0.7,
     maxOutputTokens: 2048,
@@ -39,7 +41,7 @@ export function ChatInterface() {
     scrollToBottom()
   }, [messages, streamingText])
 
-  const handleSend = async (mode: 'batch' | 'stream') => {
+  const handleSend = async (mode: 'batch' | 'stream' | 'forensic') => {
     if (!input.trim() || isProcessing) return
 
     const userMessage: ChatMessage = {
@@ -53,13 +55,40 @@ export function ChatInterface() {
     setMessages(currentMessages)
     setInput("")
 
+    if (mode === 'forensic') {
+      const t0 = Date.now()
+      try {
+        // In a real scenario, the Jules key would be fetched from environment or auth state
+        const julesKey = "your-jules-token-here" 
+        const forensicResult = await queryForensicAI(input.trim(), julesKey)
+        
+        const modelMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'model',
+          parts: [{ text: forensicResult }],
+          timestamp: new Date(),
+        }
+        setMessages(prev => [...prev, modelMessage])
+        setPerformance(prev => ({
+          ...prev,
+          [modelMessage.id]: {
+             cacheStatus: 'DYNAMIC',
+             latencyMs: Date.now() - t0
+          }
+        }))
+      } catch (err: any) {
+        console.error("Forensic Error:", err)
+      }
+      return
+    }
+
     const payload = {
       contents: currentMessages.map(m => ({
         role: m.role as 'user' | 'model',
         parts: m.parts
       })),
       generationConfig: config,
-      systemInstruction: { parts: [{ text: "You are Edge Intel, a highly efficient AI deployed on the global edge. Provide concise, technical, and accurate information. You are part of the BuildWhileBleeding arsenal." }] }
+      systemInstruction: { parts: [{ text: "You are Edge Intel, a highly efficient AI deployed on the global edge. Provide concise, technical, and accurate information. You are part of the BuildWhileBleeding forensic arsenal." }] }
     }
 
     if (mode === 'batch') {
@@ -116,7 +145,7 @@ export function ChatInterface() {
               <div className="bg-primary p-2 rounded-lg shadow-lg shadow-primary/20">
                 <Terminal className="h-5 w-5 text-primary-foreground" />
               </div>
-              <h1 className="text-xl font-headline font-bold tracking-tight text-foreground">Edge Arsenal</h1>
+              <h1 className="text-xl font-headline font-bold tracking-tight text-foreground">Forensic Engine</h1>
             </div>
             <Badge variant="outline" className="font-code text-[10px] border-primary/30 text-primary uppercase">BWB-v4.0</Badge>
           </div>
@@ -129,11 +158,11 @@ export function ChatInterface() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-foreground/90">
                     <History className="h-4 w-4 text-accent" />
-                    Session Matrix
+                    Forensic Timeline
                   </div>
                   <Button variant="ghost" size="sm" onClick={clearHistory} className="h-7 px-2 text-destructive hover:bg-destructive/10">
                     <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    FORMAT
+                    PURGE
                   </Button>
                 </div>
                 <div className="space-y-3">
@@ -152,9 +181,9 @@ export function ChatInterface() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Cache Status</span>
+                    <span className="text-muted-foreground">Witness Count</span>
                     <span className="font-code text-primary">
-                      {Object.values(performance).filter(p => p.cacheStatus === 'HIT').length} HITS
+                      {messages.length} NODES
                     </span>
                   </div>
                 </div>
@@ -163,10 +192,10 @@ export function ChatInterface() {
               <div className="rounded-lg border border-border bg-primary/5 p-4 border-dashed">
                 <div className="flex items-center gap-2 text-xs font-medium text-primary mb-2">
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  HARDENED CORE
+                  LOADBEARING CORE
                 </div>
                 <p className="text-[10px] text-muted-foreground leading-relaxed uppercase tracking-wider">
-                  BuildWhileBleeding architecture: zero-knowledge persistence & global edge caching enabled.
+                  Forensic synchronization active. Analyzing forensic data points across global edge nodes.
                 </p>
               </div>
             </div>
@@ -182,7 +211,7 @@ export function ChatInterface() {
               <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse" />
               <div className="absolute inset-0 h-2.5 w-2.5 rounded-full bg-green-500 animate-ping opacity-75" />
             </div>
-            <span className="text-[10px] font-code uppercase tracking-widest text-muted-foreground font-bold">Node: BWB-GLOBAL-01</span>
+            <span className="text-[10px] font-code uppercase tracking-widest text-muted-foreground font-bold">Node: FORENSIC-01</span>
           </div>
           <div className="flex items-center gap-4">
              {fromCache && (
@@ -205,12 +234,12 @@ export function ChatInterface() {
                 <div className="h-20 w-20 rounded-3xl bg-primary/10 flex items-center justify-center border border-primary/20 shadow-2xl shadow-primary/10">
                    <Bot className="h-10 w-10 text-primary" />
                 </div>
-                <h2 className="text-3xl font-headline font-black tracking-tight text-foreground">BuildWhileBleeding</h2>
+                <h2 className="text-3xl font-headline font-black tracking-tight text-foreground">Forensic Analysis</h2>
                 <p className="max-w-md text-sm text-muted-foreground font-medium leading-relaxed">
-                  Hardened AI bridge initialized. Secure communication channel verified via Jules Gate.
+                  Forensic engine initialized. The breadcrumb web is active. Secure analysis channel verified via Jules Gate.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-lg mt-8">
-                  {["System diagnostics", "Edge logic audit", "Jules Gate status", "Cache hit ratio"].map((t) => (
+                  {["Analyze breadcrumb 0x1", "Witness testimony audit", "Loadbearing structure check", "Forensic trace scan"].map((t) => (
                     <Button key={t} variant="outline" className="justify-start font-code text-[11px] h-auto py-3 bg-card/20 hover:bg-primary/10 hover:border-primary/50 transition-all group" onClick={() => { setInput(t); }}>
                       <span className="text-primary mr-2 opacity-50 group-hover:opacity-100">0x</span> {t}
                     </Button>
@@ -250,22 +279,29 @@ export function ChatInterface() {
             <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent/50 to-primary opacity-20 blur group-focus-within:opacity-40 transition duration-1000"></div>
             <div className="relative flex flex-col gap-2 rounded-xl bg-card/80 border border-border/80 backdrop-blur-xl p-3 shadow-2xl">
               <Textarea
-                placeholder="Initialize Edge AI sequence..."
+                placeholder="Initialize forensic sequence..."
                 className="min-h-[80px] w-full resize-none border-none bg-transparent focus-visible:ring-0 px-3 py-2 text-base font-body text-foreground placeholder:text-muted-foreground/50"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault()
-                    handleSend('batch')
+                    handleSend(isForensicMode ? 'forensic' : 'batch')
                   }
                 }}
               />
               <div className="flex items-center justify-between pt-2 px-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                    <span className="text-[10px] font-code text-muted-foreground uppercase tracking-[0.2em] font-bold">
-                     {isProcessing ? "TRANSMITTING..." : "READY"}
+                     {isProcessing ? "ANALYZING..." : "READY"}
                    </span>
+                   <button 
+                     onClick={() => setIsForensicMode(!isForensicMode)}
+                     className={`flex items-center gap-1.5 px-2 py-0.5 rounded border transition-colors ${isForensicMode ? 'bg-primary/20 border-primary text-primary' : 'bg-transparent border-border text-muted-foreground'}`}
+                   >
+                     <Search className="h-3 w-3" />
+                     <span className="text-[9px] font-code uppercase font-bold">Forensic Mode</span>
+                   </button>
                 </div>
                 <div className="flex gap-2">
                   <Button 
@@ -273,7 +309,7 @@ export function ChatInterface() {
                     variant="ghost" 
                     className="h-9 px-4 font-code text-[11px] font-bold text-muted-foreground hover:text-accent hover:bg-accent/10 transition-colors"
                     onClick={() => handleSend('stream')}
-                    disabled={isProcessing || !input.trim()}
+                    disabled={isProcessing || !input.trim() || isForensicMode}
                   >
                     STREAM
                   </Button>
@@ -290,11 +326,11 @@ export function ChatInterface() {
                     <Button 
                       size="sm" 
                       className="h-9 px-5 gap-2 font-headline font-bold shadow-lg shadow-primary/30 bg-primary hover:bg-primary/90" 
-                      onClick={() => handleSend('batch')}
+                      onClick={() => handleSend(isForensicMode ? 'forensic' : 'batch')}
                       disabled={isProcessing || !input.trim()}
                     >
-                      {batchLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                      EXECUTE
+                      {batchLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : isForensicMode ? <Search className="h-4 w-4" /> : <Send className="h-4 w-4" />}
+                      {isForensicMode ? 'ANALYZE' : 'EXECUTE'}
                     </Button>
                   )}
                 </div>
@@ -302,7 +338,7 @@ export function ChatInterface() {
             </div>
           </div>
           <p className="mt-4 text-center text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-bold opacity-40">
-            BUILD WHILE BLEEDING &bull; GLOBAL EDGE ARCHITECTURE
+            LOADBEARINGMAN &bull; FORENSIC CONTENT ENGINE
           </p>
         </div>
       </main>

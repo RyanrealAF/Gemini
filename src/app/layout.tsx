@@ -2,8 +2,8 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'BuildWhileBleeding - Edge AI Arsenal',
-  description: 'A hardened, global-scale AI interface with Jules Auth and Edge Caching.',
+  title: 'Loadbearingman - Forensic Content Engine',
+  description: 'The forensic interface for the Breadcrumb Web. Hardened AI analysis on the global edge.',
 };
 
 export default function RootLayout({
