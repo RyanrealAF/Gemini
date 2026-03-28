@@ -1,0 +1,26 @@
+name = "bwb-edge-proxy"
+main = "src/index.ts"
+compatibility_date = "2024-03-28"
+account_id = "95f23a03d74166011160da107f74c055"
+workers_dev = true
+
+[vars]
+# Routes through 'default' gateway to Google AI Studio provider
+AI_GATEWAY_URL = "https://gateway.ai.cloudflare.com/v1/95f23a03d74166011160da107f74c055/default/google-ai-studio"
+
+# Secret Bindings (Injected from your Cloudflare Secrets Store)
+[[secrets]]
+name = "GEMINI_API_KEY"
+
+[[secrets]]
+name = "Jules"
+
+[[secrets]]
+name = "Cloudflare_token"
+
+[[secrets]]
+name = "GitHub_token-Duplicate"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
